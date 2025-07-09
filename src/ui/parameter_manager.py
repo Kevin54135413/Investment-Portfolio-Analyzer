@@ -938,9 +938,6 @@ class ParameterManager:
         selected_option = sorted_options[selected_index]
         st.session_state.data_source_mode = selected_option['value']
         
-        # 顯示選擇的數據源資訊
-        st.info(f"📊 已選擇: {selected_option['description']}")
-        
         # 模擬數據進階控制區域
         if selected_option['value'] == 'simulation':
             st.markdown("---")
@@ -1021,9 +1018,7 @@ class ParameterManager:
             tiingo_key = self._get_api_key('TIINGO_API_KEY')
             fred_key = self._get_api_key('FRED_API_KEY')
             
-            if tiingo_key and fred_key:
-                st.success("🔑 API金鑰已配置完成")
-            else:
+            if not (tiingo_key and fred_key):
                 missing_keys = []
                 if not tiingo_key:
                     missing_keys.append("TIINGO_API_KEY")
