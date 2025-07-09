@@ -590,30 +590,6 @@ class ParameterManager:
             key="investment_start_date"
         )
         
-        # 顯示交易日調整資訊
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            # 檢查是否為交易日
-            try:
-                from src.utils.trading_days import is_trading_day, adjust_for_trading_days
-                from datetime import datetime as dt
-                
-                selected_datetime = dt.combine(selected_date, dt.min.time())
-                
-                if is_trading_day(selected_datetime):
-                    st.success(f"✅ {selected_date} 是交易日")
-                else:
-                    adjusted_date = adjust_for_trading_days(selected_datetime, 'next')
-                    st.warning(f"⚠️ {selected_date} 非交易日，將調整為 {adjusted_date.date()}")
-            except Exception as e:
-                st.info(f"📅 已選擇日期: {selected_date}")
-        
-        with col2:
-            # 時間軸預覽按鈕
-            if st.button("📊 預覽時間軸", key="preview_timeline"):
-                self._show_timeline_preview(selected_date)
-        
         # 顯示第1章和第2章整合資訊
         if st.checkbox("🔧 顯示技術整合資訊", key="show_start_date_tech_info"):
             st.markdown("##### 第1章時間軸生成集成")
@@ -626,31 +602,7 @@ class ParameterManager:
             for key, value in ch2_integration.items():
                 st.markdown(f"• **{key}**: {value}")
     
-    def _show_timeline_preview(self, start_date):
-        """顯示時間軸預覽"""
-        try:
-            from src.utils.trading_days import generate_simulation_timeline
-            from datetime import datetime as dt
-            
-            # 生成預覽時間軸（只顯示前4期）
-            start_datetime = dt.combine(start_date, dt.min.time())
-            preview_timeline = generate_simulation_timeline(
-                investment_years=1,  # 只預覽1年
-                frequency=st.session_state.get('investment_frequency', 'quarterly'),
-                user_start_date=start_datetime
-            )
-            
-            st.info("📅 **時間軸預覽**（前4期）")
-            for i, period in enumerate(preview_timeline[:4]):
-                st.markdown(
-                    f"**第{period['period']}期**: "
-                    f"{period['adjusted_start_date'].strftime('%Y-%m-%d')} ~ "
-                    f"{period['adjusted_end_date'].strftime('%Y-%m-%d')} "
-                    f"({period['trading_days_count']}個交易日)"
-                )
-        except Exception as e:
-            st.error(f"時間軸預覽失敗: {e}")
-    
+
     def _render_investment_years(self):
         """渲染投資年數參數 - 嚴格按照規格"""
         param = self.basic_params["investment_years"]
