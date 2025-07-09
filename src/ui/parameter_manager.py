@@ -452,13 +452,16 @@ class ParameterManager:
         """渲染期初投入金額參數 - 嚴格按照規格"""
         param = self.basic_params["initial_investment"]
         
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {param['label']}")
+        
         # 使用number_input實現slider_with_input效果
         col1, col2 = st.columns([3, 1])
         
         with col1:
             # 主要滑桿
             investment_amount = st.slider(
-                param["label"],
+                "",  # 空字符串，因為標題已在上方顯示
                 min_value=param["range"][0],
                 max_value=param["range"][1],
                 value=st.session_state.initial_investment,
@@ -489,12 +492,12 @@ class ParameterManager:
         
         # 顯示第1章和第2章整合資訊
         if st.checkbox("🔧 顯示技術整合資訊", key="show_initial_investment_tech_info"):
-            st.markdown("**第1章數據源整合**")
+            st.markdown("##### 第1章數據源整合")
             ch1_integration = param['chapter1_integration']
             for key, value in ch1_integration.items():
                 st.markdown(f"• **{key}**: {value}")
             
-            st.markdown("**第2章計算邏輯整合**")
+            st.markdown("##### 第2章計算邏輯整合")
             ch2_integration = param['chapter2_integration']
             for key, value in ch2_integration.items():
                 if isinstance(value, list):
@@ -506,13 +509,16 @@ class ParameterManager:
         """渲染年度投入金額參數 - 嚴格按照規格"""
         param = self.basic_params["annual_investment"]
         
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {param['label']}")
+        
         # 使用number_input實現slider_with_input效果
         col1, col2 = st.columns([3, 1])
         
         with col1:
             # 主要滑桿
             annual_amount = st.slider(
-                param["label"],
+                "",  # 空字符串，因為標題已在上方顯示
                 min_value=param["range"][0],
                 max_value=param["range"][1],
                 value=st.session_state.annual_investment,
@@ -552,7 +558,7 @@ class ParameterManager:
         
         # 顯示第2章整合資訊
         if st.checkbox("🔧 顯示技術整合資訊", key="show_annual_investment_tech_info"):
-            st.markdown("**第2章計算邏輯整合**")
+            st.markdown("##### 第2章計算邏輯整合")
             ch2_integration = param['chapter2_integration']
             for key, value in ch2_integration.items():
                 st.markdown(f"• **{key}**: {value}")
@@ -562,6 +568,9 @@ class ParameterManager:
         param = self.basic_params["investment_start_date"]
         
         from datetime import datetime, timedelta
+        
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {param['label']}")
         
         # 確保session state已初始化 - 修正：防護機制
         if 'investment_start_date' not in st.session_state:
@@ -574,80 +583,35 @@ class ParameterManager:
         
         # 主要日期選擇器
         selected_date = st.date_input(
-            param["label"],
+            "",  # 空字符串，因為標題已在上方顯示
             min_value=min_date,
             max_value=max_date,
             help=param["help"],
             key="investment_start_date"
         )
         
-        # 顯示交易日調整資訊
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            # 檢查是否為交易日
-            try:
-                from src.utils.trading_days import is_trading_day, adjust_for_trading_days
-                from datetime import datetime as dt
-                
-                selected_datetime = dt.combine(selected_date, dt.min.time())
-                
-                if is_trading_day(selected_datetime):
-                    st.success(f"✅ {selected_date} 是交易日")
-                else:
-                    adjusted_date = adjust_for_trading_days(selected_datetime, 'next')
-                    st.warning(f"⚠️ {selected_date} 非交易日，將調整為 {adjusted_date.date()}")
-            except Exception as e:
-                st.info(f"📅 已選擇日期: {selected_date}")
-        
-        with col2:
-            # 時間軸預覽按鈕
-            if st.button("📊 預覽時間軸", key="preview_timeline"):
-                self._show_timeline_preview(selected_date)
-        
         # 顯示第1章和第2章整合資訊
         if st.checkbox("🔧 顯示技術整合資訊", key="show_start_date_tech_info"):
-            st.markdown("**第1章時間軸生成集成**")
+            st.markdown("##### 第1章時間軸生成集成")
             ch1_integration = param['chapter1_integration']
             for key, value in ch1_integration.items():
                 st.markdown(f"• **{key}**: {value}")
             
-            st.markdown("**第2章計算邏輯集成**")
+            st.markdown("##### 第2章計算邏輯集成")
             ch2_integration = param['chapter2_integration']
             for key, value in ch2_integration.items():
                 st.markdown(f"• **{key}**: {value}")
     
-    def _show_timeline_preview(self, start_date):
-        """顯示時間軸預覽"""
-        try:
-            from src.utils.trading_days import generate_simulation_timeline
-            from datetime import datetime as dt
-            
-            # 生成預覽時間軸（只顯示前4期）
-            start_datetime = dt.combine(start_date, dt.min.time())
-            preview_timeline = generate_simulation_timeline(
-                investment_years=1,  # 只預覽1年
-                frequency=st.session_state.get('investment_frequency', 'quarterly'),
-                user_start_date=start_datetime
-            )
-            
-            st.info("📅 **時間軸預覽**（前4期）")
-            for i, period in enumerate(preview_timeline[:4]):
-                st.markdown(
-                    f"**第{period['period']}期**: "
-                    f"{period['adjusted_start_date'].strftime('%Y-%m-%d')} ~ "
-                    f"{period['adjusted_end_date'].strftime('%Y-%m-%d')} "
-                    f"({period['trading_days_count']}個交易日)"
-                )
-        except Exception as e:
-            st.error(f"時間軸預覽失敗: {e}")
-    
+
     def _render_investment_years(self):
         """渲染投資年數參數 - 嚴格按照規格"""
         param = self.basic_params["investment_years"]
         
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {param['label']}")
+        
         years = st.slider(
-            param["label"],
+            "",  # 空字符串，因為標題已在上方顯示
             min_value=param["range"][0],
             max_value=param["range"][1],
             step=param["step"],
@@ -664,12 +628,12 @@ class ParameterManager:
         
         # 顯示第1章和第2章整合資訊
         if st.checkbox("🔧 顯示技術整合資訊", key="show_investment_years_tech_info"):
-            st.markdown("**第1章時間軸整合**")
+            st.markdown("##### 第1章時間軸整合")
             ch1_integration = param['chapter1_integration']
             for key, value in ch1_integration.items():
                 st.markdown(f"• **{key}**: {value}")
             
-            st.markdown("**第2章期數計算整合**")
+            st.markdown("##### 第2章期數計算整合")
             ch2_integration = param['chapter2_integration']
             for key, value in ch2_integration.items():
                 if isinstance(value, list):
@@ -680,6 +644,9 @@ class ParameterManager:
     def _render_investment_frequency(self):
         """渲染投資頻率參數 - 嚴格按照規格"""
         param = self.basic_params["investment_frequency"]
+        
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {param['label']}")
         
         # 創建選項標籤
         options = param["options"]
@@ -695,7 +662,7 @@ class ParameterManager:
         
         # 渲染radio buttons
         selected_index = st.radio(
-            param["label"],
+            "",  # 空字符串，因為標題已在上方顯示
             range(len(options)),
             index=current_index,
             format_func=lambda x: option_labels[x],
@@ -717,12 +684,12 @@ class ParameterManager:
         
         # 顯示第1章和第2章整合資訊
         if st.checkbox("🔧 顯示技術整合資訊", key="show_frequency_tech_info"):
-            st.markdown("**第1章交易日整合**")
+            st.markdown("##### 第1章交易日整合")
             ch1_integration = param['chapter1_integration']
             for key, value in ch1_integration.items():
                 st.markdown(f"• **{key}**: {value}")
             
-            st.markdown("**第2章參數轉換整合**")
+            st.markdown("##### 第2章參數轉換整合")
             ch2_integration = param['chapter2_integration']
             for key, value in ch2_integration.items():
                 if isinstance(value, list):
@@ -734,9 +701,12 @@ class ParameterManager:
         """渲染股票比例參數 - 債券比例自動計算"""
         param = self.basic_params["stock_percentage"]
         
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {param['label']}")
+        
         # 股票比例滑桿
         stock_ratio = st.slider(
-            param["label"],
+            "",  # 空字符串，因為標題已在上方顯示
             min_value=param["range"][0],
             max_value=param["range"][1],
             value=st.session_state.stock_ratio,
@@ -758,12 +728,12 @@ class ParameterManager:
         
         # 顯示第1章和第2章整合資訊
         if st.checkbox("🔧 顯示技術整合資訊", key="show_stock_percentage_tech_info"):
-            st.markdown("**第1章數據源整合**")
+            st.markdown("##### 第1章數據源整合")
             ch1_integration = param['chapter1_integration']
             for key, value in ch1_integration.items():
                 st.markdown(f"• **{key}**: {value}")
             
-            st.markdown("**第2章計算邏輯整合**")
+            st.markdown("##### 第2章計算邏輯整合")
             ch2_integration = param['chapter2_integration']
             for key, value in ch2_integration.items():
                 st.markdown(f"• **{key}**: {value}")
@@ -823,8 +793,11 @@ class ParameterManager:
         """渲染VA策略目標成長率參數 - 嚴格按照規格"""
         param = self.basic_params["va_growth_rate"]
         
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {param['label']}")
+        
         growth_rate = st.slider(
-            param["label"],
+            "",  # 空字符串，因為標題已在上方顯示
             min_value=param["range"][0],
             max_value=param["range"][1],
             step=param["step"],
@@ -854,6 +827,9 @@ class ParameterManager:
         """渲染VA策略類型參數 - 嚴格按照規格"""
         param = self.basic_params["strategy_type"]
         
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {param['label']}")
+        
         # 創建選項標籤
         options = param["options"]
         option_labels = [f"{opt['icon']} {opt['label']}" for opt in options]
@@ -868,7 +844,7 @@ class ParameterManager:
         
         # 渲染radio buttons
         selected_index = st.radio(
-            param["label"],
+            "",  # 空字符串，因為標題已在上方顯示
             range(len(options)),
             index=current_index,
             format_func=lambda x: option_labels[x],
@@ -891,7 +867,7 @@ class ParameterManager:
         
         # 修正：移除嵌套expander，改用checkbox控制顯示技術整合資訊
         if st.checkbox("🔧 顯示技術整合資訊", key="show_strategy_type_tech_info"):
-            st.markdown("**第2章VA策略執行邏輯整合**")
+            st.markdown("##### 第2章VA策略執行邏輯整合")
             ch2_integration = param['chapter2_integration']
             for key, value in ch2_integration.items():
                 st.markdown(f"• **{key}**: {value}")
@@ -901,17 +877,23 @@ class ParameterManager:
         toggle_config = self.basic_params["inflation_adjustment"]["enable_toggle"]
         rate_config = self.basic_params["inflation_adjustment"]["inflation_rate"]
         
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {toggle_config['label']}")
+        
         # 通膨調整開關
         inflation_enabled = st.toggle(
-            toggle_config["label"],
+            "",  # 空字符串，因為標題已在上方顯示
             help=toggle_config["help"],
             key="inflation_adjustment"
         )
         
         # 通膨率設定（條件顯示）
         if inflation_enabled:
+            # 年通膨率子標題
+            st.markdown(f"#### {rate_config['label']}")
+            
             inflation_rate = st.slider(
-                rate_config["label"],
+                "",  # 空字符串，因為標題已在上方顯示
                 min_value=rate_config["range"][0],
                 max_value=rate_config["range"][1],
                 step=rate_config["step"],
@@ -924,7 +906,7 @@ class ParameterManager:
             
             # 顯示第2章整合資訊
             if st.checkbox("🔧 顯示技術整合資訊", key="show_inflation_adjustment_tech_info"):
-                st.markdown("**第2章DCA投入公式整合**")
+                st.markdown("##### 第2章DCA投入公式整合")
                 ch2_integration = rate_config['chapter2_integration']
                 for key, value in ch2_integration.items():
                     st.markdown(f"• **{key}**: {value}")
@@ -964,9 +946,6 @@ class ParameterManager:
         
         selected_option = sorted_options[selected_index]
         st.session_state.data_source_mode = selected_option['value']
-        
-        # 顯示選擇的數據源資訊
-        st.info(f"📊 已選擇: {selected_option['description']}")
         
         # 模擬數據進階控制區域
         if selected_option['value'] == 'simulation':
@@ -1048,9 +1027,7 @@ class ParameterManager:
             tiingo_key = self._get_api_key('TIINGO_API_KEY')
             fred_key = self._get_api_key('FRED_API_KEY')
             
-            if tiingo_key and fred_key:
-                st.success("🔑 API金鑰已配置完成")
-            else:
+            if not (tiingo_key and fred_key):
                 missing_keys = []
                 if not tiingo_key:
                     missing_keys.append("TIINGO_API_KEY")
