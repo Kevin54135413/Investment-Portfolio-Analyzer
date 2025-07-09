@@ -827,6 +827,9 @@ class ParameterManager:
         """渲染VA策略類型參數 - 嚴格按照規格"""
         param = self.basic_params["strategy_type"]
         
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {param['label']}")
+        
         # 創建選項標籤
         options = param["options"]
         option_labels = [f"{opt['icon']} {opt['label']}" for opt in options]
@@ -841,7 +844,7 @@ class ParameterManager:
         
         # 渲染radio buttons
         selected_index = st.radio(
-            param["label"],
+            "",  # 空字符串，因為標題已在上方顯示
             range(len(options)),
             index=current_index,
             format_func=lambda x: option_labels[x],
@@ -864,7 +867,7 @@ class ParameterManager:
         
         # 修正：移除嵌套expander，改用checkbox控制顯示技術整合資訊
         if st.checkbox("🔧 顯示技術整合資訊", key="show_strategy_type_tech_info"):
-            st.markdown("**第2章VA策略執行邏輯整合**")
+            st.markdown("##### 第2章VA策略執行邏輯整合")
             ch2_integration = param['chapter2_integration']
             for key, value in ch2_integration.items():
                 st.markdown(f"• **{key}**: {value}")
@@ -874,17 +877,23 @@ class ParameterManager:
         toggle_config = self.basic_params["inflation_adjustment"]["enable_toggle"]
         rate_config = self.basic_params["inflation_adjustment"]["inflation_rate"]
         
+        # 顯示參數標題 - 確保視覺層次正確
+        st.markdown(f"### {toggle_config['label']}")
+        
         # 通膨調整開關
         inflation_enabled = st.toggle(
-            toggle_config["label"],
+            "",  # 空字符串，因為標題已在上方顯示
             help=toggle_config["help"],
             key="inflation_adjustment"
         )
         
         # 通膨率設定（條件顯示）
         if inflation_enabled:
+            # 年通膨率子標題
+            st.markdown(f"#### {rate_config['label']}")
+            
             inflation_rate = st.slider(
-                rate_config["label"],
+                "",  # 空字符串，因為標題已在上方顯示
                 min_value=rate_config["range"][0],
                 max_value=rate_config["range"][1],
                 step=rate_config["step"],
@@ -897,7 +906,7 @@ class ParameterManager:
             
             # 顯示第2章整合資訊
             if st.checkbox("🔧 顯示技術整合資訊", key="show_inflation_adjustment_tech_info"):
-                st.markdown("**第2章DCA投入公式整合**")
+                st.markdown("##### 第2章DCA投入公式整合")
                 ch2_integration = rate_config['chapter2_integration']
                 for key, value in ch2_integration.items():
                     st.markdown(f"• **{key}**: {value}")
